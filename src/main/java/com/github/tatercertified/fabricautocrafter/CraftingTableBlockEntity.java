@@ -11,9 +11,9 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.*;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -21,8 +21,8 @@ import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.github.tatercertified.fabricautocrafter.AutoCrafterMod.TYPE;
@@ -53,22 +53,34 @@ public class CraftingTableBlockEntity extends LockableContainerBlockEntity imple
     }
 
     @Override
-    public void writeNbt(NbtCompound tag) {
-        super.writeNbt(tag);
-        Inventories.writeNbt(tag, inventory);
-        tag.put("Output", output.writeNbt(new NbtCompound()));
+    protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.writeNbt(nbt, registryLookup);
+        Inventories.writeNbt(nbt, inventory, registryLookup);
+        if (!output.isEmpty()) {
+            nbt.put("Output", output.encode(registryLookup));
+        }
     }
 
     @Override
-    public void readNbt(NbtCompound tag) {
-        super.readNbt(tag);
-        Inventories.readNbt(tag, inventory);
-        this.output = ItemStack.fromNbt(tag.getCompound("Output"));
+    protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.readNbt(nbt, registryLookup);
+        Inventories.readNbt(nbt, inventory, registryLookup);
+        this.output = ItemStack.fromNbtOrEmpty(registryLookup, nbt.getCompound("Output"));
     }
 
     @Override
     protected Text getContainerName() {
         return Text.translatable("container.crafting");
+    }
+
+    @Override
+    protected DefaultedList<ItemStack> getHeldStacks() {
+        return this.inventory;
+    }
+
+    @Override
+    protected void setHeldStacks(DefaultedList<ItemStack> inventory) {
+        this.inventory = inventory;
     }
 
     @Override
@@ -191,13 +203,13 @@ public class CraftingTableBlockEntity extends LockableContainerBlockEntity imple
 
         if (getLastRecipe != null) {
             CraftingRecipe recipe = (CraftingRecipe) getLastRecipe.value();
-            Map<Identifier, RecipeEntry<CraftingRecipe>> craftingRecipes = manager.getAllOfType(RecipeType.CRAFTING);
-            if (craftingRecipes.containsKey(recipe) && craftingRecipes.get(recipe) != null) {
-                CraftingRecipe mapRecipe = craftingRecipes.get(recipe).value();
-                if (mapRecipe != null && mapRecipe.matches(craftingInventory, world)) {
-                    return Optional.of(recipe);
-                }
-            }
+            Collection<RecipeEntry<CraftingRecipe>> craftingRecipes = manager.getAllOfType(RecipeType.CRAFTING);
+
+            return craftingRecipes.stream()
+                    .filter(entry -> entry.value().equals(recipe))
+                    .map(RecipeEntry::value)
+                    .filter(mapRecipe1 -> mapRecipe1.matches(craftingInventory, world))
+                    .findFirst();
         }
 
         Optional<RecipeEntry<CraftingRecipe>> recipe = manager.getFirstMatch(RecipeType.CRAFTING, craftingInventory, world);
@@ -221,9 +233,11 @@ public class CraftingTableBlockEntity extends LockableContainerBlockEntity imple
                 current.decrement(1);
             }
             if (!remainingStack.isEmpty()) {
+                System.out.println("TEST1");
                 if (current.isEmpty()) {
+                    System.out.println("TEST2");
                     inventory.set(i, remainingStack);
-                } else if (ItemStack.canCombine(current, remainingStack)) {
+                } else if (ItemStack.areItemsAndComponentsEqual(current, remainingStack)) {
                     current.increment(remainingStack.getCount());
                 } else {
                     ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), remainingStack);

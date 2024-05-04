@@ -1,7 +1,7 @@
 package com.github.tatercertified.fabricautocrafter;
 
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -22,12 +21,12 @@ import static net.minecraft.block.Blocks.CRAFTING_TABLE;
 
 public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvider {
 
-    protected AutoCrafter(FabricBlockSettings blockSettings) {
+    protected AutoCrafter(AbstractBlock.Settings blockSettings) {
         super(blockSettings);
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (world.isClient) {
             return ActionResult.SUCCESS;
         } else if (world.getBlockEntity(pos) instanceof CraftingTableBlockEntity entity) {
@@ -38,8 +37,8 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     }
 
     @Override
-    public Block getPolymerBlock(BlockState state) {
-        return CRAFTING_TABLE;
+    public BlockState getPolymerBlockState(BlockState state) {
+        return CRAFTING_TABLE.getDefaultState();
     }
 
     @Override

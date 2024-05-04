@@ -1,2 +1,2 @@
 accessWidener	v1	named
-accessible    method    net/minecraft/recipe/RecipeManager    getAllOfType    (Lnet/minecraft/recipe/RecipeType;)Ljava/util/Map;
+accessible method net/minecraft/recipe/RecipeManager getAllOfType (Lnet/minecraft/recipe/RecipeType;)Ljava/util/Collection;

@@ -8,6 +8,7 @@ import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
@@ -57,7 +58,7 @@ public abstract class MixinHopperBlockEntity {
             if (hopper.isValid(i, test)) {
                 var stack = hopper.getStack(i);
                 if (stack.isEmpty() || (stack.getCount() < Math.min(stack.getMaxCount(), hopper.getMaxCountPerStack())
-                        && ItemStack.canCombine(stack, test))) return true;
+                        && ItemStack.areItemsAndComponentsEqual(stack, test))) return true;
             }
         }
         return false;
