@@ -5,9 +5,12 @@
   "mixins": [
     "AccessorScreenHandler",
     "CraftingInventoryMixin",
+    "LithiumBlockEntityOptimizations",
+    "LithiumSleepControlMixin",
     "MixinHopperBlockEntity"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "plugin": "com.moulberry.mixinconstraints.ConstraintsMixinPlugin"
 }

@@ -14,7 +14,6 @@ import net.minecraft.recipe.*;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -183,8 +182,6 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
         return lastRecipe;
     }
 
-
-
     @Override
     public void clear() {
         this.inventory.clear();
@@ -220,7 +217,6 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
     private ItemStack craft() {
         if (this.world == null) return ItemStack.EMPTY;
         final Optional<CraftingRecipe> optionalRecipe = getCurrentRecipe();
-        System.out.println(optionalRecipe.isEmpty());
         if (optionalRecipe.isEmpty()) return ItemStack.EMPTY;
 
         final CraftingRecipe recipe = optionalRecipe.get();
