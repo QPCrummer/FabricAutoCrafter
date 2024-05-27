@@ -20,16 +20,16 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import java.util.List;
 
 public class AutoCraftingTableContainer extends CraftingScreenHandler {
-    private final CraftingTableBlockEntity blockEntity;
+    private final AutoCraftingTableBlockEntity blockEntity;
     private final PlayerEntity player;
     private CraftingInventory crafting_inv;
 
-    AutoCraftingTableContainer(int id, PlayerInventory playerInventory, CraftingTableBlockEntity blockEntity) {
+    AutoCraftingTableContainer(int id, PlayerInventory playerInventory, AutoCraftingTableBlockEntity blockEntity) {
         super(id, playerInventory);
         this.blockEntity = blockEntity;
         this.player = playerInventory.player;
 
-        this.crafting_inv = blockEntity.boundCraftingInventory(this);
+        this.crafting_inv = blockEntity.bindInventory(this);
 
         var self = (AccessorScreenHandler) this;
         slots.clear();
@@ -70,7 +70,7 @@ public class AutoCraftingTableContainer extends CraftingScreenHandler {
             ItemStack current = before.copy();
             if (!this.insertItem(current, 10, 46, true)) return ItemStack.EMPTY;
             this.blockEntity.removeStack(0, before.getCount() - current.getCount());
-            slots.get(0).onQuickTransfer(current, before); // calls onCrafted if different
+            slots.getFirst().onQuickTransfer(current, before); // calls onCrafted if different
             return this.blockEntity.getStack(0);
         }
         return super.quickMove(player, slot);

@@ -22,7 +22,7 @@ public class AutoCrafterMod implements ModInitializer {
     public static final Identifier IDENTIFIER = new Identifier("autocrafter", "autocrafter");
     public static final Block BLOCK = new AutoCrafter(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).strength(2.5f, 2.5f));
     public static final BlockItem ITEM = new PolymerBlockItem(BLOCK, new Item.Settings(), Items.CRAFTING_TABLE);
-    public static final BlockEntityType<CraftingTableBlockEntity> TYPE = BlockEntityType.Builder.create(CraftingTableBlockEntity::new, BLOCK).build(null);
+    public static final BlockEntityType<AutoCraftingTableBlockEntity> TYPE = BlockEntityType.Builder.create(AutoCraftingTableBlockEntity::new, BLOCK).build(null);
 
     @Override
     public void onInitialize() {

@@ -29,7 +29,7 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (world.isClient) {
             return ActionResult.SUCCESS;
-        } else if (world.getBlockEntity(pos) instanceof CraftingTableBlockEntity entity) {
+        } else if (world.getBlockEntity(pos) instanceof AutoCraftingTableBlockEntity entity) {
             player.openHandledScreen(entity);
             player.incrementStat(Stats.INTERACT_WITH_CRAFTING_TABLE);
         }
@@ -49,9 +49,9 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     @Override
     public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
         if (!state.hasBlockEntity()) return 0;
-        if (world.getBlockEntity(pos) instanceof CraftingTableBlockEntity craftingTableBlockEntity) {
+        if (world.getBlockEntity(pos) instanceof AutoCraftingTableBlockEntity craftingTableBlockEntity) {
             int filled = 0;
-            for (ItemStack stack : craftingTableBlockEntity.inventory) {
+            for (ItemStack stack : craftingTableBlockEntity.getHeldStacks()) {
                 if (!stack.isEmpty()) filled++;
             }
             return (filled * 15) / 9;
@@ -63,10 +63,10 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     @Override
     public void onStateReplaced(BlockState oldState, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (oldState.getBlock() != newState.getBlock()) {
-            if (world.getBlockEntity(pos) instanceof CraftingTableBlockEntity entity) {
-                ItemScatterer.spawn(world, pos, entity.inventory);
-                if (!entity.output.isEmpty()) {
-                    ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), entity.output);
+            if (world.getBlockEntity(pos) instanceof AutoCraftingTableBlockEntity entity) {
+                ItemScatterer.spawn(world, pos, entity.getHeldStacks());
+                if (!entity.getOutput().isEmpty()) {
+                    ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), entity.getOutput());
                 }
                 world.updateNeighborsAlways(pos, this);
             }
@@ -78,10 +78,10 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
 
     @Override
     public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {
-        if (world.getBlockEntity(pos) instanceof CraftingTableBlockEntity entity) {
-            ItemScatterer.spawn(world, pos, entity.inventory);
-            if (!entity.output.isEmpty()) {
-                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), entity.output);
+        if (world.getBlockEntity(pos) instanceof AutoCraftingTableBlockEntity entity) {
+            ItemScatterer.spawn(world, pos, entity.getHeldStacks());
+            if (!entity.getOutput().isEmpty()) {
+                ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), entity.getOutput());
             }
         }
     }
@@ -89,6 +89,6 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return state.isOf(AutoCrafterMod.BLOCK) ? new CraftingTableBlockEntity(pos, state) : null;
+        return state.isOf(AutoCrafterMod.BLOCK) ? new AutoCraftingTableBlockEntity(pos, state) : null;
     }
 }
