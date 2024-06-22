@@ -19,7 +19,7 @@ import static net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents.modifyEntries
 
 public class AutoCrafterMod implements ModInitializer {
 
-    public static final Identifier IDENTIFIER = new Identifier("autocrafter", "autocrafter");
+    public static final Identifier IDENTIFIER = Identifier.of("autocrafter", "autocrafter");
     public static final Block BLOCK = new AutoCrafter(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).strength(2.5f, 2.5f));
     public static final BlockItem ITEM = new PolymerBlockItem(BLOCK, new Item.Settings(), Items.CRAFTING_TABLE);
     public static final BlockEntityType<AutoCraftingTableBlockEntity> TYPE = BlockEntityType.Builder.create(AutoCraftingTableBlockEntity::new, BLOCK).build(null);
@@ -32,5 +32,6 @@ public class AutoCrafterMod implements ModInitializer {
         Registry.register(Registries.ITEM, IDENTIFIER, ITEM);
         Registry.register(Registries.BLOCK_ENTITY_TYPE, IDENTIFIER, TYPE);
         PolymerBlockUtils.registerBlockEntity(TYPE);
+
     }
 }

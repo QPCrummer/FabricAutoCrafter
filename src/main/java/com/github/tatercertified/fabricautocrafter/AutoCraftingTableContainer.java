@@ -5,10 +5,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.RecipeInputInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
-import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.CraftingRecipe;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeMatcher;
 import net.minecraft.recipe.RecipeUnlocker;
@@ -97,8 +96,8 @@ public class AutoCraftingTableContainer extends CraftingScreenHandler {
     }
 
     @Override
-    public boolean matches(RecipeEntry<? extends Recipe<RecipeInputInventory>> recipe) {
-        return recipe.value().matches(this.crafting_inv, this.player.getWorld());
+    public boolean matches(RecipeEntry<CraftingRecipe> recipe) {
+        return recipe.value().matches(this.crafting_inv.createRecipeInput(), this.player.getWorld());
     }
 
     @Override

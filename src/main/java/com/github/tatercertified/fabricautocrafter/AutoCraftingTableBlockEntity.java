@@ -11,6 +11,7 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.*;
+import net.minecraft.recipe.input.CraftingRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
@@ -124,7 +125,7 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
         if (slot > 0) return this.inventory.get(slot - 1);
         if (!output.isEmpty()) return output;
         Optional<CraftingRecipe> recipe = getCurrentRecipe();
-        return recipe.map(craftingRecipe -> craftingRecipe.craft(craftingInventory, this.getWorld().getRegistryManager())).orElse(ItemStack.EMPTY);
+        return recipe.map(craftingRecipe -> craftingRecipe.craft(craftingInventory.createRecipeInput(), this.getWorld().getRegistryManager())).orElse(ItemStack.EMPTY);
     }
 
     @Override
@@ -201,14 +202,14 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
              for (RecipeEntry<CraftingRecipe> entry : manager.getAllOfType(RecipeType.CRAFTING)) {
                  if (entry.value().equals(recipe)) {
                      CraftingRecipe mapRecipe = entry.value();
-                     if (mapRecipe.matches(this.craftingInventory, world)) {
+                     if (mapRecipe.matches(this.craftingInventory.createRecipeInput(), world)) {
                          return Optional.of(mapRecipe);
                      }
                  }
              }
         }
 
-        Optional<RecipeEntry<CraftingRecipe>> recipe = manager.getFirstMatch(RecipeType.CRAFTING, craftingInventory, world);
+        Optional<RecipeEntry<CraftingRecipe>> recipe = manager.getFirstMatch(RecipeType.CRAFTING, craftingInventory.createRecipeInput(), world);
         recipe.ifPresent(this::setLastRecipe);
 
         return recipe.map(RecipeEntry::value);
@@ -220,8 +221,9 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
         if (optionalRecipe.isEmpty()) return ItemStack.EMPTY;
 
         final CraftingRecipe recipe = optionalRecipe.get();
-        final ItemStack result = recipe.craft(craftingInventory, this.getWorld().getRegistryManager());
-        final DefaultedList<ItemStack> remaining = world.getRecipeManager().getRemainingStacks(RecipeType.CRAFTING, craftingInventory, world);
+        final CraftingRecipeInput input = craftingInventory.createRecipeInput();
+        final ItemStack result = recipe.craft(input, this.getWorld().getRegistryManager());
+        final DefaultedList<ItemStack> remaining = world.getRecipeManager().getRemainingStacks(RecipeType.CRAFTING, input, world);
         for (int i = 0; i < 9; i++) {
             ItemStack current = inventory.get(i);
             ItemStack remainingStack = remaining.get(i);
