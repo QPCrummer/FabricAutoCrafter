@@ -2,8 +2,8 @@ package com.github.tatercertified.fabricautocrafter.mixin;
 
 import com.github.tatercertified.fabricautocrafter.AutoCraftingTableBlockEntity;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import me.jellysquid.mods.lithium.common.block.entity.SleepingBlockEntity;
-import me.jellysquid.mods.lithium.mixin.world.block_entity_ticking.sleeping.WrappedBlockEntityTickInvokerAccessor;
+import net.caffeinemc.mods.lithium.common.block.entity.SleepingBlockEntity;
+import net.caffeinemc.mods.lithium.mixin.world.block_entity_ticking.sleeping.WrappedBlockEntityTickInvokerAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.LockableContainerBlockEntity;

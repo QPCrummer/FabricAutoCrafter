@@ -8,6 +8,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.ItemScatterer;
@@ -16,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.explosion.Explosion;
 import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 import static net.minecraft.block.Blocks.CRAFTING_TABLE;
 
@@ -37,7 +39,7 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     }
 
     @Override
-    public BlockState getPolymerBlockState(BlockState state) {
+    public BlockState getPolymerBlockState(BlockState blockState, PacketContext packetContext) {
         return CRAFTING_TABLE.getDefaultState();
     }
 
@@ -77,7 +79,7 @@ public class AutoCrafter extends Block implements PolymerBlock, BlockEntityProvi
     }
 
     @Override
-    public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {
+    public void onDestroyedByExplosion(ServerWorld world, BlockPos pos, Explosion explosion) {
         if (world.getBlockEntity(pos) instanceof AutoCraftingTableBlockEntity entity) {
             ItemScatterer.spawn(world, pos, entity.getHeldStacks());
             if (!entity.getOutput().isEmpty()) {

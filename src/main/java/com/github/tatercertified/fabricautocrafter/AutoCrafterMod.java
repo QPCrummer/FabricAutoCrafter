@@ -3,6 +3,7 @@ package com.github.tatercertified.fabricautocrafter;
 import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import eu.pb4.polymer.core.api.item.PolymerBlockItem;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -22,7 +23,7 @@ public class AutoCrafterMod implements ModInitializer {
     public static final Identifier IDENTIFIER = Identifier.of("autocrafter", "autocrafter");
     public static final Block BLOCK = new AutoCrafter(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).strength(2.5f, 2.5f));
     public static final BlockItem ITEM = new PolymerBlockItem(BLOCK, new Item.Settings(), Items.CRAFTING_TABLE);
-    public static final BlockEntityType<AutoCraftingTableBlockEntity> TYPE = BlockEntityType.Builder.create(AutoCraftingTableBlockEntity::new, BLOCK).build(null);
+    public static final BlockEntityType<AutoCraftingTableBlockEntity> TYPE = FabricBlockEntityTypeBuilder.create(AutoCraftingTableBlockEntity::new, BLOCK).build();
 
     @Override
     public void onInitialize() {

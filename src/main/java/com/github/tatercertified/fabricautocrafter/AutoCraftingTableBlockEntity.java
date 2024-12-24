@@ -50,7 +50,7 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
         super.writeNbt(nbt, registryLookup);
         Inventories.writeNbt(nbt, inventory, registryLookup);
         if (!output.isEmpty()) {
-            nbt.put("Output", output.encode(registryLookup));
+            nbt.put("Output", output.toNbt(registryLookup));
         }
     }
 
@@ -169,7 +169,7 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
     }
 
     @Override
-    public void provideRecipeInputs(RecipeMatcher finder) {
+    public void provideRecipeInputs(RecipeFinder finder) {
         for (ItemStack stack : this.inventory) finder.addInput(stack);
     }
 

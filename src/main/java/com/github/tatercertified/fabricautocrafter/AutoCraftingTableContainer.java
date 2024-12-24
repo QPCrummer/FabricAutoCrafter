@@ -7,10 +7,7 @@ import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeMatcher;
-import net.minecraft.recipe.RecipeUnlocker;
+import net.minecraft.recipe.*;
 import net.minecraft.screen.CraftingScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -86,27 +83,28 @@ public class AutoCraftingTableContainer extends CraftingScreenHandler {
     }
 
     @Override
-    public void populateRecipeFinder(RecipeMatcher finder) {
+    public void populateRecipeFinder(RecipeFinder finder) {
         this.crafting_inv.provideRecipeInputs(finder);
     }
 
-    @Override
-    public void clearCraftingSlots() {
-        this.crafting_inv.clear();
-    }
+    // TODO See if these are needed anymore
+    //@Override
+    //public void clearCraftingSlots() {
+    //    this.crafting_inv.clear();
+    //}
+
+    //@Override
+    //public boolean matches(RecipeEntry<CraftingRecipe> recipe) {
+    //    return recipe.value().matches(this.crafting_inv.createRecipeInput(), this.player.getWorld());
+    //}
 
     @Override
-    public boolean matches(RecipeEntry<CraftingRecipe> recipe) {
-        return recipe.value().matches(this.crafting_inv.createRecipeInput(), this.player.getWorld());
-    }
-
-    @Override
-    public int getCraftingWidth() {
+    public int getWidth() {
         return this.crafting_inv.getWidth();
     }
 
     @Override
-    public int getCraftingHeight() {
+    public int getHeight() {
         return this.crafting_inv.getHeight();
     }
 
