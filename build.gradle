@@ -32,10 +32,6 @@ dependencies {
     include(implementation("com.moulberry:mixinconstraints:1.0.2"))
 }
 
-loom {
-    accessWidenerPath.set("src/main/resources/act.accesswidener" as File)
-}
-
 processResources {
     inputs.property "version", project.version
 
