@@ -14,6 +14,8 @@ import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 import static net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents.modifyEntriesEvent;
@@ -21,8 +23,10 @@ import static net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents.modifyEntries
 public class AutoCrafterMod implements ModInitializer {
 
     public static final Identifier IDENTIFIER = Identifier.of("autocrafter", "autocrafter");
-    public static final Block BLOCK = new AutoCrafter(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).strength(2.5f, 2.5f));
-    public static final BlockItem ITEM = new PolymerBlockItem(BLOCK, new Item.Settings(), Items.CRAFTING_TABLE);
+    private static final RegistryKey<Block> key_block = RegistryKey.of(RegistryKeys.BLOCK, IDENTIFIER);
+    private static final RegistryKey<Item> key_item = RegistryKey.of(RegistryKeys.ITEM, IDENTIFIER);
+    public static final Block BLOCK = new AutoCrafter(AbstractBlock.Settings.copy(Blocks.CRAFTING_TABLE).strength(2.5f, 2.5f).registryKey(key_block));
+    public static final BlockItem ITEM = new PolymerBlockItem(BLOCK, new Item.Settings().registryKey(key_item), Items.CRAFTING_TABLE);
     public static final BlockEntityType<AutoCraftingTableBlockEntity> TYPE = FabricBlockEntityTypeBuilder.create(AutoCraftingTableBlockEntity::new, BLOCK).build();
 
     @Override

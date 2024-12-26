@@ -2,20 +2,23 @@ package com.github.tatercertified.fabricautocrafter;
 
 import com.github.tatercertified.fabricautocrafter.mixin.CraftingInventoryMixin;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.RecipeInputInventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.recipe.*;
 import net.minecraft.recipe.input.CraftingRecipeInput;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -23,16 +26,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity implements SidedInventory, RecipeUnlocker, RecipeInputProvider {
+public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity implements SidedInventory, RecipeUnlocker, RecipeInputInventory {
 
     private static final int[] OUTPUT_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     private static final int[] INPUT_SLOTS = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    private static final int GRID_WIDTH = 3;
+    private static final int GRID_HEIGHT = 3;
 
     private final List<AutoCraftingTableContainer> openContainers = new ArrayList<>();
     private final CraftingInventory craftingInventory = new CraftingInventory(null, 3, 3);
     public DefaultedList<ItemStack> inventory;
     private ItemStack output = ItemStack.EMPTY;
     private RecipeEntry<?> lastRecipe;
+    private static final RecipeCache recipeCache = new RecipeCache(10);
 
     public AutoCraftingTableBlockEntity(BlockPos pos, BlockState state) {
         super(AutoCrafterMod.TYPE, pos, state);
@@ -67,7 +73,17 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
     }
 
     @Override
-    protected DefaultedList<ItemStack> getHeldStacks() {
+    public int getWidth() {
+        return GRID_WIDTH;
+    }
+
+    @Override
+    public int getHeight() {
+        return GRID_HEIGHT;
+    }
+
+    @Override
+    public DefaultedList<ItemStack> getHeldStacks() {
         return this.inventory;
     }
 
@@ -89,7 +105,7 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
 
     @Override
     public int[] getAvailableSlots(Direction dir) {
-        return (dir == Direction.DOWN && (!output.isEmpty() || getCurrentRecipe().isPresent())) ? OUTPUT_SLOTS : INPUT_SLOTS;
+        return (dir == Direction.DOWN && (!output.isEmpty() || (!quickEscape() && !getCurrentRecipe().isEmpty()))) ? OUTPUT_SLOTS : INPUT_SLOTS;
     }
 
     @Override
@@ -99,7 +115,7 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
 
     @Override
     public boolean canExtract(int slot, ItemStack stack, Direction dir) {
-        return slot != 0 || !output.isEmpty() || getCurrentRecipe().isPresent();
+        return slot != 0 || !output.isEmpty() || (!quickEscape() && !getCurrentRecipe().isEmpty());
     }
 
     @Override
@@ -124,8 +140,7 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
     public ItemStack getStack(int slot) {
         if (slot > 0) return this.inventory.get(slot - 1);
         if (!output.isEmpty()) return output;
-        Optional<CraftingRecipe> recipe = getCurrentRecipe();
-        return recipe.map(craftingRecipe -> craftingRecipe.craft(craftingInventory.createRecipeInput(), this.getWorld().getRegistryManager())).orElse(ItemStack.EMPTY);
+        return quickEscape()? ItemStack.EMPTY : getCurrentRecipe();
     }
 
     @Override
@@ -188,60 +203,44 @@ public class AutoCraftingTableBlockEntity extends LockableContainerBlockEntity i
         this.inventory.clear();
     }
 
-    private Optional<CraftingRecipe> getCurrentRecipe() {
-        // Optimization Code from Crec0
-        if (this.world == null || this.isEmpty()) return Optional.empty();
-
-        RecipeManager manager = this.world.getRecipeManager();
-
-        var getLastRecipe = getLastRecipe();
-
-        if (getLastRecipe != null) {
-             CraftingRecipe recipe = (CraftingRecipe) getLastRecipe.value();
-
-             for (RecipeEntry<CraftingRecipe> entry : manager.getAllOfType(RecipeType.CRAFTING)) {
-                 if (entry.value().equals(recipe)) {
-                     CraftingRecipe mapRecipe = entry.value();
-                     if (mapRecipe.matches(this.craftingInventory.createRecipeInput(), world)) {
-                         return Optional.of(mapRecipe);
-                     }
-                 }
-             }
+    private ItemStack getCurrentRecipe() {
+        BlockEntity craftingRecipeInput = this.world.getBlockEntity(pos);
+        if (craftingRecipeInput instanceof AutoCraftingTableBlockEntity autoCraftingTableBlockEntity) {
+            CraftingRecipeInput var11 = autoCraftingTableBlockEntity.createRecipeInput();
+            Optional<RecipeEntry<CraftingRecipe>> optional = getCraftingRecipe((ServerWorld) this.world, var11);
+            if (optional.isPresent()) {
+                RecipeEntry<CraftingRecipe> recipeEntry = optional.get();
+                return recipeEntry.value().craft(var11, this.world.getRegistryManager());
+            }
         }
+        return ItemStack.EMPTY;
+    }
 
-        Optional<RecipeEntry<CraftingRecipe>> recipe = manager.getFirstMatch(RecipeType.CRAFTING, craftingInventory.createRecipeInput(), world);
-        recipe.ifPresent(this::setLastRecipe);
-
-        return recipe.map(RecipeEntry::value);
+    private boolean quickEscape() {
+        return this.world == null || this.isEmpty();
     }
 
     private ItemStack craft() {
-        if (this.world == null) return ItemStack.EMPTY;
-        final Optional<CraftingRecipe> optionalRecipe = getCurrentRecipe();
-        if (optionalRecipe.isEmpty()) return ItemStack.EMPTY;
-
-        final CraftingRecipe recipe = optionalRecipe.get();
-        final CraftingRecipeInput input = craftingInventory.createRecipeInput();
-        final ItemStack result = recipe.craft(input, this.getWorld().getRegistryManager());
-        final DefaultedList<ItemStack> remaining = world.getRecipeManager().getRemainingStacks(RecipeType.CRAFTING, input, world);
-        for (int i = 0; i < 9; i++) {
-            ItemStack current = inventory.get(i);
-            ItemStack remainingStack = remaining.get(i);
-            if (!current.isEmpty()) {
-                current.decrement(1);
-            }
-            if (!remainingStack.isEmpty()) {
-                if (current.isEmpty()) {
-                    inventory.set(i, remainingStack);
-                } else if (ItemStack.areItemsAndComponentsEqual(current, remainingStack)) {
-                    current.increment(remainingStack.getCount());
-                } else {
-                    ItemScatterer.spawn(world, pos.getX(), pos.getY(), pos.getZ(), remainingStack);
-                }
+        if (quickEscape()) return ItemStack.EMPTY;
+        BlockEntity craftingRecipeInput = this.world.getBlockEntity(pos);
+        if (craftingRecipeInput instanceof AutoCraftingTableBlockEntity autoCraftingTableBlockEntity) {
+            ItemStack itemStack = getCurrentRecipe();
+            if (!itemStack.isEmpty()) {
+                itemStack.onCraftByCrafter(this.world);
+                autoCraftingTableBlockEntity.getHeldStacks().forEach((stack) -> {
+                    if (!stack.isEmpty()) {
+                        stack.decrement(1);
+                    }
+                });
+                autoCraftingTableBlockEntity.markDirty();
+                return itemStack;
             }
         }
-        markDirty();
-        return result;
+        return ItemStack.EMPTY;
+    }
+
+    private static Optional<RecipeEntry<CraftingRecipe>> getCraftingRecipe(ServerWorld world, CraftingRecipeInput input) {
+        return recipeCache.getRecipe(world, input);
     }
 
     public CraftingInventory unsetHandler() {
